@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 104" fill="none" role="img" aria-label="AUREON">
+  <title>AUREON</title>
+  <!-- Structural balance: the grey base form, sitting behind the letter -->
+  <path d="M40 74h20v0c0 10-5 17-10 22-5-5-10-12-10-22Z" fill="#A7A9AC" fill-opacity="0.5"/>
+  <!-- Shield: protection, security, durability -->
+  <path d="M8 8h22l20 14 20-14h22v46c0 24-42 42-42 42S8 78 8 54V8Z" stroke="#D4AF37" stroke-width="7" stroke-linejoin="round"/>
+  <!-- The A: rises through the notch and breaks past the shield at the feet -->
+  <path d="M50 12 78 86H60L50 44 40 86H22L50 12Z" fill="#D4AF37"/>
+  <rect x="32" y="66" width="36" height="10" fill="#D4AF37"/>
+</svg>

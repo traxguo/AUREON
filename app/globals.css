@@ -1,0 +1,284 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --gold: #d4af37;
+    --gold-dim: #8c7527;
+    --ink: #0d0d0d;
+    --graphite: #1f2023;
+    --silver: #a7a9ac;
+    --bone: #f3f1ea;
+    --ease-aureon: cubic-bezier(0.22, 1, 0.36, 1);
+    --hairline: rgba(167, 169, 172, 0.16);
+  }
+
+  html {
+    background-color: var(--ink);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--ink);
+    color: var(--silver);
+    font-family: var(--font-body), system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: rgba(212, 175, 55, 0.24);
+    color: var(--bone);
+  }
+
+  :focus-visible {
+    outline: 1px solid var(--gold);
+    outline-offset: 3px;
+  }
+
+  /* Remove the default focus ring only where we draw our own. */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font: inherit;
+    color: inherit;
+  }
+
+  /* Firefox scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(212, 175, 55, 0.35) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--ink);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(212, 175, 55, 0.3);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(212, 175, 55, 0.5);
+  }
+}
+
+@layer components {
+  /* Small uppercase technical label — serial numbers, units, coordinates. */
+  .data-label {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 0.6875rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    line-height: 1.4;
+  }
+
+  .data-label-sm {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 0.625rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    line-height: 1.4;
+  }
+
+  .display-heading {
+    font-family: var(--font-display), Impact, sans-serif;
+    font-weight: 500;
+    text-transform: uppercase;
+    line-height: 0.92;
+    letter-spacing: 0.005em;
+    color: var(--bone);
+  }
+
+  /*
+   * The AUREON wordmark. Deliberately not the display face: the logotype is
+   * wide and geometric, while Big Shoulders Display is condensed — setting the
+   * brand name in it would misrepresent the mark. Big Shoulders stays the
+   * heading typeface everywhere else.
+   */
+  .wordmark {
+    font-family: var(--font-body), system-ui, sans-serif;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.24em;
+    line-height: 1;
+    color: var(--bone);
+    /* Tracking adds trailing space; pull it back so the mark stays centred. */
+    margin-right: -0.24em;
+  }
+
+  .hairline {
+    border-color: var(--hairline);
+  }
+
+  /* Thin gold underline that grows on hover — the only hover affordance used. */
+  .link-underline {
+    position: relative;
+    display: inline-block;
+  }
+  .link-underline::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    height: 1px;
+    width: 100%;
+    background: var(--gold);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 200ms var(--ease-aureon);
+  }
+  .link-underline:hover::after,
+  .link-underline:focus-visible::after,
+  .link-underline[data-active='true']::after {
+    transform: scaleX(1);
+  }
+
+  .field {
+    width: 100%;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--hairline);
+    padding: 0.75rem 0;
+    color: var(--bone);
+    transition: border-color 200ms var(--ease-aureon);
+  }
+  .field::placeholder {
+    color: rgba(167, 169, 172, 0.45);
+  }
+  .field:hover {
+    border-bottom-color: rgba(167, 169, 172, 0.35);
+  }
+  .field:focus {
+    outline: none;
+    border-bottom-color: var(--gold);
+  }
+  .field:focus-visible {
+    outline: none;
+  }
+  /* Native select dropdown list needs an explicit dark background. */
+  select.field option {
+    background: var(--graphite);
+    color: var(--bone);
+  }
+
+  .btn-gold {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    background: var(--gold);
+    color: var(--ink);
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 0.6875rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    padding: 1rem 1.75rem;
+    border: 1px solid var(--gold);
+    transition:
+      background-color 200ms var(--ease-aureon),
+      color 200ms var(--ease-aureon);
+  }
+  .btn-gold:hover {
+    background: #e2c250;
+  }
+  .btn-gold:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    background: transparent;
+    color: var(--bone);
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 0.6875rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    padding: 1rem 1.75rem;
+    border: 1px solid var(--hairline);
+    transition:
+      border-color 200ms var(--ease-aureon),
+      color 200ms var(--ease-aureon);
+  }
+  .btn-outline:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  /* Thin gold frame used by the certificate block and badges. */
+  .gold-frame {
+    border: 1px solid rgba(212, 175, 55, 0.4);
+  }
+
+  .section-shell {
+    max-width: 1440px;
+    margin-inline: auto;
+    padding-inline: 1.5rem;
+  }
+  @media (min-width: 768px) {
+    .section-shell {
+      padding-inline: 3rem;
+    }
+  }
+  @media (min-width: 1280px) {
+    .section-shell {
+      padding-inline: 5rem;
+    }
+  }
+}
+
+/* Hero entrance — letters resolving out of the dark. */
+@keyframes aureon-letter-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes aureon-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
