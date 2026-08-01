@@ -52,13 +52,13 @@ export const metadata: Metadata = {
     description: en.meta.description,
     url: siteUrl,
     locale: 'en',
-    images: [{ url: '/og.svg', width: 1200, height: 630, alt: en.meta.ogAlt }],
+    images: [{ url: '/og.png', width: 1200, height: 630, alt: en.meta.ogAlt }],
   },
   twitter: {
     card: 'summary_large_image',
     title: en.meta.title,
     description: en.meta.description,
-    images: ['/og.svg'],
+    images: ['/og.png'],
   },
   icons: {
     icon: '/logo.svg',
@@ -104,7 +104,7 @@ const jsonLd = {
       brand: { '@id': `${siteUrl}#organization` },
       manufacturer: { '@id': `${siteUrl}#organization` },
       category: 'Mini excavator',
-      image: `${siteUrl}/og.svg`,
+      image: `${siteUrl}/og.png`,
       offers: {
         '@type': 'Offer',
         price: product.priceEur,

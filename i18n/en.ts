@@ -316,6 +316,7 @@ const en = {
       company: 'Company',
       country: 'Country',
       countryPlaceholder: 'Select a country',
+      selectPlaceholder: 'Select',
       email: 'Email',
       phone: 'Phone',
       interest: 'Interest',

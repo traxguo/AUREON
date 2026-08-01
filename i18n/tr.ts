@@ -318,6 +318,7 @@ const tr: Dictionary = {
       company: 'Firma',
       country: 'Ülke',
       countryPlaceholder: 'Ülke seçin',
+      selectPlaceholder: 'Seçin',
       email: 'E-posta',
       phone: 'Telefon',
       interest: 'İlgi alanı',

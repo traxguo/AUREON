@@ -207,6 +207,7 @@ const es: Dictionary = {
       company: 'Empresa',
       country: 'País',
       countryPlaceholder: 'Seleccione un país',
+      selectPlaceholder: 'Seleccione',
       email: 'Correo electrónico',
       phone: 'Teléfono',
       interest: 'Interés',
