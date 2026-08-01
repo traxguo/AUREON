@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 74" fill="none" role="img" aria-label="AUREON">
+  <title>AUREON</title>
+  <!-- Outer shield: protection, durability -->
+  <path d="M32 2.5 60 12.4v25.9c0 15.6-12.2 26.9-28 33.2C16.2 65.2 4 53.9 4 38.3V12.4L32 2.5Z"
+        stroke="#D4AF37" stroke-width="1.6" stroke-linejoin="round"/>
+  <!-- Inner shield: structural balance, engineering -->
+  <path d="M32 9.6 53.4 17v21.1c0 11.9-9.3 20.6-21.4 25.4C19.9 58.7 10.6 50 10.6 38.1V17L32 9.6Z"
+        stroke="#D4AF37" stroke-width="0.7" stroke-opacity="0.45" stroke-linejoin="round"/>
+  <!-- Stylised A -->
+  <path d="M32 19.5 44.2 51.5" stroke="#D4AF37" stroke-width="1.6" stroke-linecap="square"/>
+  <path d="M32 19.5 19.8 51.5" stroke="#D4AF37" stroke-width="1.6" stroke-linecap="square"/>
+  <path d="M24.6 40.2h14.8" stroke="#D4AF37" stroke-width="1.6" stroke-linecap="square"/>
+  <!-- Datum tick at the apex -->
+  <path d="M32 13.8v4.1" stroke="#D4AF37" stroke-width="0.7" stroke-opacity="0.6"/>
+</svg>
