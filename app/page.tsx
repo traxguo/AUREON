@@ -10,6 +10,7 @@ import Specifications from '@/components/sections/Specifications';
 import FieldMap from '@/components/map/FieldMap';
 import ExportSection from '@/components/sections/ExportSection';
 import Contact from '@/components/sections/Contact';
+import SecretRecord from '@/components/easter/SecretRecord';
 import { useT } from '@/components/i18n/LanguageProvider';
 
 export default function HomePage() {
@@ -38,6 +39,7 @@ export default function HomePage() {
       </main>
 
       <Footer />
+      <SecretRecord />
     </>
   );
 }

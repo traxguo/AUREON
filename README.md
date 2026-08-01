@@ -193,6 +193,27 @@ the model-presence flag is recomputed.
 
 ---
 
+## The hidden record
+
+There is one easter egg. Press this sequence anywhere on the page, outside a
+form field:
+
+    ↑ ↑ ↓ ↓ ← → ← →  G  U  O
+
+A restricted-record panel opens with the message signed by GUO. Escape, the
+Close button or a click outside dismisses it.
+
+It is deliberately **not** a route. A page at `/guo` would appear in crawls and
+the sitemap; a key sequence leaves nothing in the markup or the network tab
+until it fires. The sequence, the timeout and every line of the message live in
+`data/easterEgg.ts` — rewrite the message there.
+
+Keys are matched on `KeyboardEvent.code`, so the sequence is the same on any
+keyboard layout, and keystrokes inside inputs, textareas and selects are
+ignored so typing never triggers it by accident.
+
+---
+
 ## Design and behaviour notes
 
 - **Colour** is limited to gold `#D4AF37`, ink `#0D0D0D`, graphite `#1F2023`,
@@ -208,8 +229,12 @@ the model-presence flag is recomputed.
 - **Reduced motion** shortens the hero track and snaps it to four static
   frames instead of animating; Framer Motion reveals drop their translation.
 - **Mobile** (≤768 px) halves the globe's dot density, drops the hero to two
-  buried utilities and fewer radar rings, caps `dpr` at 1.5, and replaces the
-  globe with a vertical site list that keeps the same selection and panel
-  behaviour.
+  buried utilities and fewer radar rings, and caps `dpr` at 1.5. The globe
+  renders at every width; on phones a tappable site list sits beneath it.
+- **Framing** adapts to viewport shape. A perspective camera holds its vertical
+  field of view, so a portrait phone would cut the machine off; `aspectPullback`
+  in `components/hero/HeroScene.tsx` backs the camera off by the ratio of the
+  reference aspect (1.6) to the real one, and thins the exponential fog by the
+  same factor so the haze looks identical at any distance.
 - **3D scenes** are `dynamic(..., { ssr: false })` so they never block first
   paint. The hero shows a gold progress rule until the canvas reports ready.

@@ -41,7 +41,20 @@ const KEYFRAMES: Keyframe[] = [
   { p: 1.0, pos: [13.6, 6.2, 13.2], target: [0.4, -0.5, 0] },
 ];
 
-const MOBILE_ZOOM_OUT = 1.28;
+/**
+ * The keyframes above are framed for a landscape viewport. A perspective
+ * camera holds its *vertical* field of view, so a portrait phone sees far less
+ * horizontally and the machine spills out of frame. Pulling the camera back by
+ * the ratio of the reference aspect to the real one restores the intended
+ * horizontal coverage at any shape of screen.
+ */
+const REFERENCE_ASPECT = 1.6;
+const MAX_ASPECT_PULLBACK = 2.4;
+
+function aspectPullback(aspect: number): number {
+  if (!Number.isFinite(aspect) || aspect <= 0) return 1;
+  return THREE.MathUtils.clamp(REFERENCE_ASPECT / aspect, 1, MAX_ASPECT_PULLBACK);
+}
 
 function sampleKeyframes(p: number, out: { pos: THREE.Vector3; target: THREE.Vector3 }) {
   let index = 0;
@@ -63,8 +76,8 @@ function sampleKeyframes(p: number, out: { pos: THREE.Vector3; target: THREE.Vec
   );
 }
 
-function CameraRig({ mobile, still }: { mobile: boolean; still: boolean }) {
-  const { camera } = useThree();
+function CameraRig({ still }: { still: boolean }) {
+  const { camera, size } = useThree();
   const desired = useMemo(
     () => ({ pos: new THREE.Vector3(), target: new THREE.Vector3() }),
     [],
@@ -72,12 +85,13 @@ function CameraRig({ mobile, still }: { mobile: boolean; still: boolean }) {
   const current = useRef(new THREE.Vector3(...KEYFRAMES[0].pos));
   const lookAt = useRef(new THREE.Vector3(...KEYFRAMES[0].target));
 
+  const pullback = aspectPullback(size.width / size.height);
+
   useFrame((_, delta) => {
     sampleKeyframes(heroProgress.value, desired);
 
-    if (mobile) {
-      desired.pos.multiplyScalar(MOBILE_ZOOM_OUT);
-    }
+    // Keep the look-at point on the machine while the camera backs off.
+    desired.pos.sub(desired.target).multiplyScalar(pullback).add(desired.target);
 
     // Damping keeps fast scroll flicks from snapping the camera.
     const lambda = still ? 100 : 6.5;
@@ -186,6 +200,12 @@ function Ground() {
 function Atmosphere() {
   const fog = useRef<THREE.FogExp2>(null);
   const scanLight = useRef<THREE.PointLight>(null);
+  const { size } = useThree();
+
+  // Exponential fog is measured in world units, so a narrow viewport — which
+  // pushes the camera back — would otherwise swallow the machine in haze.
+  // Thinning the fog by the same factor keeps the look identical on a phone.
+  const pullback = aspectPullback(size.width / size.height);
 
   useFrame(() => {
     const p = heroProgress.value;
@@ -194,7 +214,7 @@ function Atmosphere() {
       // Haze on arrival, clearing through the middle, closing at the end.
       const clearing = smoothstep(0.02, 0.2, p);
       const closing = smoothstep(0.9, 1, p);
-      fog.current.density = 0.052 - clearing * 0.032 + closing * 0.13;
+      fog.current.density = (0.052 - clearing * 0.032 + closing * 0.13) / pullback;
     }
 
     if (scanLight.current) {
@@ -208,10 +228,10 @@ function Atmosphere() {
   return (
     <>
       <fogExp2 ref={fog} attach="fog" args={['#0D0D0D', 0.052]} />
-      <ambientLight intensity={1.1} color="#7B838C" />
+      <ambientLight intensity={1.35} color="#868E98" />
       <directionalLight
         position={[7, 10, 6]}
-        intensity={3.4}
+        intensity={3.9}
         color="#FFF6E2"
         castShadow
         shadow-mapSize={[1024, 1024]}
@@ -223,7 +243,7 @@ function Atmosphere() {
       />
       <directionalLight position={[-8, 4, -5]} intensity={1.1} color="#5D6874" />
       {/* Rim light that separates the machine from the dark ground */}
-      <directionalLight position={[-3, 2.5, 7]} intensity={0.9} color="#B9C2CC" />
+      <directionalLight position={[-3, 2.5, 7]} intensity={1.25} color="#C4CCD6" />
       {/* Gold underglow that comes up with the radar */}
       <pointLight ref={scanLight} position={[1.2, -0.6, 0]} color="#D4AF37" intensity={0} distance={16} />
     </>
@@ -280,7 +300,7 @@ export function HeroScene({ mobile = false, still = false, onReady }: HeroSceneP
       <color attach="background" args={['#0D0D0D']} />
       <StudioEnvironment />
       <Atmosphere />
-      <CameraRig mobile={mobile} still={still} />
+      <CameraRig still={still} />
       <Machine still={still} />
       <Ground />
       <Subsurface mobile={mobile} />
