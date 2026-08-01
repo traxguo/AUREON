@@ -2,9 +2,14 @@
  * Reference field sites.
  *
  * This is the single source of truth for the field map section. To add a
- * machine, append a record here and drop a 16:9 photo at
- * `/public/sites/{id}.jpg`. A missing photo renders a typographic placeholder,
- * never a broken image.
+ * machine, append a record here and drop a photo in `/public/sites/`.
+ *
+ * Photo filenames are matched at build time by `data/sitePhotos.ts` — the file
+ * may be named after the id, the ISO code, the country or the city, so
+ * `dz.jpg`, `algeria.jpg` and `ORAN-ALGERIA.jpg` all reach the same record.
+ * A site with no photo renders a typographic placeholder, never a broken
+ * image. The `photo` field below is documentation of the conventional name;
+ * nothing breaks if the actual file is called something else.
  *
  * `sector` is a key into `map.sectors` in the i18n dictionaries, so the label
  * translates with the rest of the site. `country` is a key into `map.countries`.

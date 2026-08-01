@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 
 /**
- * Site photography is optional. When `/public/sites/{id}.jpg` is absent the
- * frame holds its shape with a typographic placeholder — a broken-image icon
- * would undo everything else on the page.
+ * Site photography is optional. When no file matched the site the frame holds
+ * its shape with a typographic placeholder — a broken-image icon would undo
+ * everything else on the page.
  *
  * The frame is 3:2 to match the supplied field photography; `object-cover`
  * absorbs any other ratio without letterboxing.
@@ -16,7 +16,7 @@ export function SitePhoto({
   placeholder,
   caption,
 }: {
-  src: string;
+  src: string | null;
   alt: string;
   placeholder: string;
   caption: string;
@@ -25,10 +25,12 @@ export function SitePhoto({
 
   useEffect(() => setFailed(false), [src]);
 
+  const showImage = src !== null && !failed;
+
   return (
     <div className="relative aspect-[3/2] w-full overflow-hidden bg-graphite">
-      {!failed ? (
-        // eslint-disable-next-line @next/next/no-img-element -- optional asset with a graceful fallback; the optimiser 404s on missing files
+      {showImage ? (
+        // eslint-disable-next-line @next/next/no-img-element -- hand-dropped asset resolved at build time; the optimiser adds nothing here
         <img
           src={src}
           alt={alt}

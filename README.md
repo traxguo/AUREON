@@ -110,7 +110,7 @@ nothing here can break a build.
 |---|---|---|
 | Logo | `public/logo.svg` | — (shipped; mirrored in `components/ui/Logo.tsx`) |
 | 3D model | `public/models/aureon-s5.glb` | Low-poly model built from primitives |
-| Site photos | `public/sites/{id}.jpg` | Typographic placeholder with the serial |
+| Site photos | `public/sites/` (any filename) | Typographic placeholder with the serial |
 | OG image | `public/og.png` | — (shipped) |
 
 **The logo** is a web translation of the brand mark: notched shield, a solid
@@ -132,6 +132,19 @@ typeface everywhere else.
 
 Regenerating `public/og.png` after a logo change is manual — it is a static
 render of a 1200 × 630 layout using the same paths.
+
+**Adding site photography:** drop the images in `public/sites/` and redeploy.
+The folder is read at build time (`next.config.mjs`) and each file is matched
+to a site by `data/sitePhotos.ts`, so you do not have to learn the id scheme —
+a file is matched on the site id, the ISO code, the country or the city, with
+case, spaces, punctuation and accents ignored. All of these reach the Algeria
+record:
+
+    dz.jpg    DZ.png    algeria.jpg    oran.webp    ORAN-ALGERIA.jpeg
+
+The site id wins if several files match. A site with no file makes no request
+at all, so a half-filled folder produces no console errors. Frames are 3:2;
+other ratios are cropped with `object-cover`.
 
 **Adding the real 3D model:** drop the `.glb` in `public/models/` and
 redeploy. Presence is resolved at build time in `next.config.mjs`, so no
