@@ -31,13 +31,16 @@ function LandPoints({ density }: { density: number }) {
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
+    // Land reads as lit coastline against empty ocean, so the dots sit close to
+    // the bone tone rather than the muted silver used for body copy.
     const mat = new THREE.PointsMaterial({
-      color: '#A7A9AC',
-      size: density > 1 ? 0.026 : 0.017,
+      color: '#F3F1EA',
+      size: density > 1 ? 0.03 : 0.02,
       sizeAttenuation: true,
       transparent: true,
-      opacity: 0.55,
+      opacity: 0.92,
       depthWrite: false,
+      blending: THREE.AdditiveBlending,
     });
 
     return { geometry: geo, material: mat };
@@ -299,7 +302,7 @@ function GlobeBody({
         onClick={handleClick}
       >
         <sphereGeometry args={[GLOBE_RADIUS, 48, 32]} />
-        <meshBasicMaterial color="#0F1114" />
+        <meshBasicMaterial color="#16181B" />
       </mesh>
 
       <LandPoints density={density} />
@@ -325,6 +328,8 @@ export type GlobeProps = {
   selectedId: string | null;
   nearestId: string | null;
   mobile?: boolean;
+  /** Stop rendering while the section is off screen. */
+  active?: boolean;
   onSelect: (site: Site) => void;
   onHover: (site: Site | null) => void;
   onEmptyClick: (screen: { x: number; y: number }) => void;
@@ -335,6 +340,7 @@ export function Globe({
   selectedId,
   nearestId,
   mobile = false,
+  active = true,
   onSelect,
   onHover,
   onEmptyClick,
@@ -344,6 +350,7 @@ export function Globe({
   return (
     <Canvas
       dpr={mobile ? [1, 1.5] : [1, 2]}
+      frameloop={active ? 'always' : 'never'}
       camera={{ fov: 32, position: [0, 0, 7.6], near: 0.1, far: 40 }}
       gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       style={{ cursor: grabbing ? 'grabbing' : 'grab', touchAction: 'pan-y' }}

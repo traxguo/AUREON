@@ -22,7 +22,7 @@ export const product = {
 } as const;
 
 export const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? 'https://aureon-s5.vercel.app';
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? 'https://aureon-seven-alpha.vercel.app';
 
 /** Countries offered in the contact form's country select. */
 export const countryOptions = [

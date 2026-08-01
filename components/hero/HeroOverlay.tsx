@@ -211,14 +211,19 @@ export function HeroOverlay({ ready = false }: { ready?: boolean }) {
       </div>
 
       {/* ---- detection readouts ---- */}
-      <ul className="absolute left-6 top-[22%] flex flex-col gap-2.5 md:left-12 md:top-[26%] md:gap-3 xl:left-20">
+      {/*
+        On a phone the machine sits in the middle of a tall frame, so the
+        readouts drop to the lower third instead of covering it. On desktop
+        they keep the upper-left position beside the machine.
+      */}
+      <ul className="absolute inset-x-6 bottom-28 flex flex-col gap-2.5 md:inset-x-auto md:bottom-auto md:left-12 md:top-[26%] md:gap-3 xl:left-20">
         {detections.map((detection, i) => (
           <li
             key={detection.id}
             ref={(node) => {
               detectionRefs.current[i] = node;
             }}
-            className="w-[16.5rem] max-w-[72vw] border border-gold/35 bg-ink/70 px-3 py-2.5 backdrop-blur-[2px] md:w-[17.5rem] md:px-4 md:py-3"
+            className="w-full border border-gold/35 bg-ink/70 px-3 py-2.5 backdrop-blur-[2px] md:w-[17.5rem] md:px-4 md:py-3"
             style={{ opacity: 0 }}
           >
             <div className="data-label-sm flex items-center gap-2 text-bone">

@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { useT } from '@/components/i18n/LanguageProvider';
 import type { Site } from '@/data/sites';
+import { resolveSitePhoto } from '@/data/sitePhotos';
 import SitePhoto from './SitePhoto';
 
 /**
@@ -37,7 +38,7 @@ export function SitePanel({
       aria-live="polite"
     >
       <SitePhoto
-        src={site.photo}
+        src={resolveSitePhoto(site)}
         alt={`${site.city}, ${country} — ${site.company}`}
         placeholder={t.map.panel.photoPlaceholder}
         caption={site.serial}

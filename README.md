@@ -110,7 +110,7 @@ nothing here can break a build.
 |---|---|---|
 | Logo | `public/logo.svg` | — (shipped; mirrored in `components/ui/Logo.tsx`) |
 | 3D model | `public/models/aureon-s5.glb` | Low-poly model built from primitives |
-| Site photos | `public/sites/{id}.jpg` | Typographic placeholder with the serial |
+| Site photos | `public/sites/` (any filename) | Typographic placeholder with the serial |
 | OG image | `public/og.png` | — (shipped) |
 
 **The logo** is a web translation of the brand mark: notched shield, a solid
@@ -132,6 +132,19 @@ typeface everywhere else.
 
 Regenerating `public/og.png` after a logo change is manual — it is a static
 render of a 1200 × 630 layout using the same paths.
+
+**Adding site photography:** drop the images in `public/sites/` and redeploy.
+The folder is read at build time (`next.config.mjs`) and each file is matched
+to a site by `data/sitePhotos.ts`, so you do not have to learn the id scheme —
+a file is matched on the site id, the ISO code, the country or the city, with
+case, spaces, punctuation and accents ignored. All of these reach the Algeria
+record:
+
+    dz.jpg    DZ.png    algeria.jpg    oran.webp    ORAN-ALGERIA.jpeg
+
+The site id wins if several files match. A site with no file makes no request
+at all, so a half-filled folder produces no console errors. Frames are 3:2;
+other ratios are cropped with `object-cover`.
 
 **Adding the real 3D model:** drop the `.glb` in `public/models/` and
 redeploy. Presence is resolved at build time in `next.config.mjs`, so no
@@ -193,6 +206,33 @@ the model-presence flag is recomputed.
 
 ---
 
+## The hidden record
+
+There is one easter egg, with two ways in.
+
+**Keyboard** — press this sequence anywhere on the page, outside a form field:
+
+    ↑ ↑ ↓ ↓ ← → ← →  G  U  O
+
+**Touch** — tap the AUREON mark in the footer five times within 2.5 seconds.
+Phones have no arrow keys, so the mark carries a `data-secret-trigger`
+attribute and counts rapid taps. Tapping slowly does nothing.
+
+Either opens a restricted-record panel with the message signed by GUO. Escape,
+the Close button or a click outside dismisses it.
+
+It is deliberately **not** a route. A page at `/guo` would appear in crawls and
+the sitemap; a key sequence leaves nothing in the markup or the network tab
+until it fires. The sequence, the timeout and every line of the message live in
+`data/easterEgg.ts` — rewrite the message there.
+
+Keys are matched on `KeyboardEvent.code`, so the sequence is the same on any
+keyboard layout, and keystrokes inside inputs, textareas and selects are
+ignored so typing never triggers it by accident. The tap count and its window
+are `SECRET_TAP_COUNT` and `SECRET_TAP_WINDOW` in the same file.
+
+---
+
 ## Design and behaviour notes
 
 - **Colour** is limited to gold `#D4AF37`, ink `#0D0D0D`, graphite `#1F2023`,
@@ -208,8 +248,20 @@ the model-presence flag is recomputed.
 - **Reduced motion** shortens the hero track and snaps it to four static
   frames instead of animating; Framer Motion reveals drop their translation.
 - **Mobile** (≤768 px) halves the globe's dot density, drops the hero to two
-  buried utilities and fewer radar rings, caps `dpr` at 1.5, and replaces the
-  globe with a vertical site list that keeps the same selection and panel
-  behaviour.
+  buried utilities and fewer radar rings, and caps `dpr` at 1.5. The globe
+  renders at every width; on phones a tappable site list sits beneath it.
+- **Framing** adapts to viewport shape. A perspective camera holds its vertical
+  field of view, so a portrait phone would cut the machine off; `aspectPullback`
+  in `components/hero/HeroScene.tsx` backs the camera off by the ratio of the
+  reference aspect (1.6) to the real one, and thins the exponential fog by the
+  same factor so the haze looks identical at any distance.
 - **3D scenes** are `dynamic(..., { ssr: false })` so they never block first
   paint. The hero shows a gold progress rule until the canvas reports ready.
+  Both canvases stop rendering when scrolled off screen (`useInViewport` →
+  `frameloop`), which keeps a phone from driving two live WebGL contexts at
+  once and stops either being dropped under memory pressure.
+- **The machine's turntable** rotates freely only while the page is at the top.
+  The heading is wrapped into ±180° and frozen the moment scrolling begins, so
+  the alignment is always the short way round; scaling the raw accumulated
+  angle instead made a page left open for two minutes spin two full turns as
+  soon as you scrolled.

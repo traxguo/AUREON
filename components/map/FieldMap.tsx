@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useT } from '@/components/i18n/LanguageProvider';
 import FadeUp from '@/components/motion/FadeUp';
 import { useIsMobile } from '@/hooks/useMediaQuery';
+import { useInViewport } from '@/hooks/useInViewport';
 import { FALLBACK_ORIGIN, nearestSite, sites, type Site } from '@/data/sites';
 import SitePanel from './SitePanel';
 import VisitRequestModal from './VisitRequestModal';
@@ -28,6 +29,7 @@ export function FieldMap({ id }: { id: string }) {
   const [hint, setHint] = useState<Hint>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const section = useRef<HTMLElement>(null);
+  const onScreen = useInViewport(section);
 
   const nearest = useMemo(() => nearestSite(origin), [origin]);
 
@@ -120,8 +122,43 @@ export function FieldMap({ id }: { id: string }) {
         <div className="mt-12 grid gap-10 lg:grid-cols-5 lg:gap-14">
           {/* ---- globe / list ---- */}
           <FadeUp className="lg:col-span-3">
-            {isMobile ? (
-              <ul className="divide-y divide-silver/10 border-y border-silver/10">
+            {/*
+              The globe renders at every width. On phones it sits above the
+              list rather than replacing it: the globe carries the "we are in
+              these countries" message, while the list stays the reliable way
+              to pick a site with a thumb.
+            */}
+            <div className="relative">
+              <div
+                className="aspect-square w-full"
+                role="application"
+                aria-label={t.a11y.globeAlt}
+              >
+                <Globe
+                  sites={sites}
+                  selectedId={selectedId}
+                  nearestId={nearest.site.id}
+                  mobile={isMobile}
+                  active={onScreen}
+                  onSelect={handleSelect}
+                  onHover={setHovered}
+                  onEmptyClick={handleEmptyClick}
+                />
+              </div>
+
+              <p className="data-label-sm absolute bottom-0 left-0 text-silver/35">
+                {t.map.dragHint}
+              </p>
+
+              {hovered && (
+                <p className="data-label-sm pointer-events-none absolute right-0 top-0 text-gold">
+                  {hovered.city}
+                </p>
+              )}
+            </div>
+
+            {isMobile && (
+              <ul className="mt-10 divide-y divide-silver/10 border-y border-silver/10">
                 {sites.map((site) => {
                   const active = site.id === selectedId;
                   return (
@@ -161,33 +198,6 @@ export function FieldMap({ id }: { id: string }) {
                   );
                 })}
               </ul>
-            ) : (
-              <div className="relative">
-                <div
-                  className="aspect-square w-full"
-                  role="application"
-                  aria-label={t.a11y.globeAlt}
-                >
-                  <Globe
-                    sites={sites}
-                    selectedId={selectedId}
-                    nearestId={nearest.site.id}
-                    onSelect={handleSelect}
-                    onHover={setHovered}
-                    onEmptyClick={handleEmptyClick}
-                  />
-                </div>
-
-                <p className="data-label-sm absolute bottom-0 left-0 text-silver/35">
-                  {t.map.dragHint}
-                </p>
-
-                {hovered && (
-                  <p className="data-label-sm pointer-events-none absolute right-0 top-0 text-gold">
-                    {hovered.city}
-                  </p>
-                )}
-              </div>
             )}
           </FadeUp>
 

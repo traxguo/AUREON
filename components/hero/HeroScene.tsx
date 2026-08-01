@@ -33,15 +33,28 @@ type Keyframe = {
  */
 const KEYFRAMES: Keyframe[] = [
   { p: 0.0, pos: [6.9, 4.7, 7.9], target: [0.4, 1.2, 0] },
-  { p: 0.15, pos: [5.7, 3.1, 6.2], target: [0.4, 1.3, 0] },
-  { p: 0.32, pos: [1.3, 1.9, 5.3], target: [-0.25, 1.32, 0.15] },
-  { p: 0.46, pos: [6.4, 2.8, 8.0], target: [0.3, -0.4, 0] },
-  { p: 0.62, pos: [7.3, 2.1, 8.7], target: [0.3, -0.85, 0] },
-  { p: 0.8, pos: [11.6, 4.7, 11.6], target: [0.4, -0.7, 0] },
-  { p: 1.0, pos: [13.6, 6.2, 13.2], target: [0.4, -0.5, 0] },
+  { p: 0.15, pos: [7.6, 3.7, 8.2], target: [0.4, 1.25, 0] },
+  { p: 0.32, pos: [3.4, 2.5, 8.0], target: [0.2, 1.3, 0.1] },
+  { p: 0.46, pos: [6.6, 2.9, 8.2], target: [0.3, 0.1, 0] },
+  { p: 0.62, pos: [7.5, 2.3, 8.9], target: [0.3, -0.3, 0] },
+  { p: 0.8, pos: [11.6, 4.7, 11.6], target: [0.4, -0.5, 0] },
+  { p: 1.0, pos: [13.6, 6.2, 13.2], target: [0.4, -0.4, 0] },
 ];
 
-const MOBILE_ZOOM_OUT = 1.28;
+/**
+ * The keyframes above are framed for a landscape viewport. A perspective
+ * camera holds its *vertical* field of view, so a portrait phone sees far less
+ * horizontally and the machine spills out of frame. Pulling the camera back by
+ * the ratio of the reference aspect to the real one restores the intended
+ * horizontal coverage at any shape of screen.
+ */
+const REFERENCE_ASPECT = 1.6;
+const MAX_ASPECT_PULLBACK = 2.4;
+
+function aspectPullback(aspect: number): number {
+  if (!Number.isFinite(aspect) || aspect <= 0) return 1;
+  return THREE.MathUtils.clamp(REFERENCE_ASPECT / aspect, 1, MAX_ASPECT_PULLBACK);
+}
 
 function sampleKeyframes(p: number, out: { pos: THREE.Vector3; target: THREE.Vector3 }) {
   let index = 0;
@@ -63,8 +76,8 @@ function sampleKeyframes(p: number, out: { pos: THREE.Vector3; target: THREE.Vec
   );
 }
 
-function CameraRig({ mobile, still }: { mobile: boolean; still: boolean }) {
-  const { camera } = useThree();
+function CameraRig({ still }: { still: boolean }) {
+  const { camera, size } = useThree();
   const desired = useMemo(
     () => ({ pos: new THREE.Vector3(), target: new THREE.Vector3() }),
     [],
@@ -72,12 +85,13 @@ function CameraRig({ mobile, still }: { mobile: boolean; still: boolean }) {
   const current = useRef(new THREE.Vector3(...KEYFRAMES[0].pos));
   const lookAt = useRef(new THREE.Vector3(...KEYFRAMES[0].target));
 
+  const pullback = aspectPullback(size.width / size.height);
+
   useFrame((_, delta) => {
     sampleKeyframes(heroProgress.value, desired);
 
-    if (mobile) {
-      desired.pos.multiplyScalar(MOBILE_ZOOM_OUT);
-    }
+    // Keep the look-at point on the machine while the camera backs off.
+    desired.pos.sub(desired.target).multiplyScalar(pullback).add(desired.target);
 
     // Damping keeps fast scroll flicks from snapping the camera.
     const lambda = still ? 100 : 6.5;
@@ -104,6 +118,18 @@ function CameraRig({ mobile, still }: { mobile: boolean; still: boolean }) {
 /* Machine turntable                                                   */
 /* ------------------------------------------------------------------ */
 
+/** Wrap an angle into (-PI, PI] so easing always takes the short way round. */
+function wrapAngle(angle: number): number {
+  return angle - Math.PI * 2 * Math.floor((angle + Math.PI) / (Math.PI * 2));
+}
+
+/**
+ * Progress at which the machine faces the camera square-on. The turn is phased
+ * around this point so the logo panel is presented exactly at the recognition
+ * beat, while the whole scroll still adds up to one complete revolution.
+ */
+const HEADING_ZERO_AT = 0.32;
+
 function Machine({ still }: { still: boolean }) {
   const group = useRef<THREE.Group>(null);
 
@@ -111,11 +137,22 @@ function Machine({ still }: { still: boolean }) {
     if (!group.current) return;
     const p = heroProgress.value;
 
-    // Free rotation on arrival, easing to a locked heading that presents the
-    // side panel — and therefore the logo — square to the camera.
-    const drifting = -0.62 + (still ? 0.4 : clock.getElapsedTime() * 0.11);
-    const lock = smoothstep(PHASES.arrival[1], 0.32, p);
-    group.current.rotation.y = drifting * (1 - lock);
+    // One full revolution across the scroll, driven entirely by progress.
+    //
+    // This replaced a clock-driven turntable: because that angle accumulated
+    // for as long as the page sat at the top, the alignment step had to unwind
+    // it, and a page left open for two minutes spun two full turns the moment
+    // you scrolled. Deriving the heading from progress makes the motion
+    // deterministic — the same scroll position is always the same angle.
+    const spin = (p - HEADING_ZERO_AT) * Math.PI * 2;
+
+    // A slow, bounded sway so the machine is not dead still before the first
+    // scroll. It is worth ±7° at most and is gone by the time the turn starts,
+    // so it can never accumulate.
+    const sway = still ? 0 : Math.sin(clock.getElapsedTime() * 0.25) * 0.12;
+    const swayFade = 1 - smoothstep(0, 0.05, p);
+
+    group.current.rotation.y = wrapAngle(spin + sway * swayFade);
   });
 
   return (
@@ -186,6 +223,12 @@ function Ground() {
 function Atmosphere() {
   const fog = useRef<THREE.FogExp2>(null);
   const scanLight = useRef<THREE.PointLight>(null);
+  const { size } = useThree();
+
+  // Exponential fog is measured in world units, so a narrow viewport — which
+  // pushes the camera back — would otherwise swallow the machine in haze.
+  // Thinning the fog by the same factor keeps the look identical on a phone.
+  const pullback = aspectPullback(size.width / size.height);
 
   useFrame(() => {
     const p = heroProgress.value;
@@ -194,7 +237,7 @@ function Atmosphere() {
       // Haze on arrival, clearing through the middle, closing at the end.
       const clearing = smoothstep(0.02, 0.2, p);
       const closing = smoothstep(0.9, 1, p);
-      fog.current.density = 0.052 - clearing * 0.032 + closing * 0.13;
+      fog.current.density = (0.052 - clearing * 0.032 + closing * 0.13) / pullback;
     }
 
     if (scanLight.current) {
@@ -208,10 +251,10 @@ function Atmosphere() {
   return (
     <>
       <fogExp2 ref={fog} attach="fog" args={['#0D0D0D', 0.052]} />
-      <ambientLight intensity={1.1} color="#7B838C" />
+      <ambientLight intensity={1.35} color="#868E98" />
       <directionalLight
         position={[7, 10, 6]}
-        intensity={3.4}
+        intensity={3.9}
         color="#FFF6E2"
         castShadow
         shadow-mapSize={[1024, 1024]}
@@ -223,7 +266,7 @@ function Atmosphere() {
       />
       <directionalLight position={[-8, 4, -5]} intensity={1.1} color="#5D6874" />
       {/* Rim light that separates the machine from the dark ground */}
-      <directionalLight position={[-3, 2.5, 7]} intensity={0.9} color="#B9C2CC" />
+      <directionalLight position={[-3, 2.5, 7]} intensity={1.25} color="#C4CCD6" />
       {/* Gold underglow that comes up with the radar */}
       <pointLight ref={scanLight} position={[1.2, -0.6, 0]} color="#D4AF37" intensity={0} distance={16} />
     </>
@@ -256,15 +299,22 @@ function StudioEnvironment() {
 export type HeroSceneProps = {
   mobile?: boolean;
   still?: boolean;
+  /** Stop rendering once the hero has scrolled away. */
+  active?: boolean;
   onReady?: () => void;
 };
 
-export function HeroScene({ mobile = false, still = false, onReady }: HeroSceneProps) {
+export function HeroScene({
+  mobile = false,
+  still = false,
+  active = true,
+  onReady,
+}: HeroSceneProps) {
   return (
     <Canvas
       dpr={mobile ? [1, 1.5] : [1, 2]}
       shadows={!mobile}
-      frameloop="always"
+      frameloop={active ? 'always' : 'never'}
       gl={{
         antialias: !mobile,
         powerPreference: 'high-performance',
@@ -280,7 +330,7 @@ export function HeroScene({ mobile = false, still = false, onReady }: HeroSceneP
       <color attach="background" args={['#0D0D0D']} />
       <StudioEnvironment />
       <Atmosphere />
-      <CameraRig mobile={mobile} still={still} />
+      <CameraRig still={still} />
       <Machine still={still} />
       <Ground />
       <Subsurface mobile={mobile} />

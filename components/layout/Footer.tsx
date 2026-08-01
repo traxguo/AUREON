@@ -22,7 +22,8 @@ export function Footer() {
     <footer className="border-t border-silver/10 py-16 md:py-20">
       <div className="section-shell grid gap-12 lg:grid-cols-12 lg:gap-16">
         <div className="lg:col-span-5">
-          <div className="flex items-center gap-3">
+          {/* The mark is the touch entry point for the hidden record. */}
+          <div className="flex w-fit select-none items-center gap-3" data-secret-trigger>
             <Logo className="h-8 w-auto" title={t.a11y.logoAlt} />
             <span className="wordmark text-base">{t.brand.name}</span>
           </div>

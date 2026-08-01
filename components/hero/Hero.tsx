@@ -6,6 +6,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useT } from '@/components/i18n/LanguageProvider';
 import { useIsMobile, usePrefersReducedMotion } from '@/hooks/useMediaQuery';
+import { useInViewport } from '@/hooks/useInViewport';
 import HeroOverlay from './HeroOverlay';
 import { REDUCED_MOTION_FRAMES, setHeroProgress } from './heroProgress';
 
@@ -42,6 +43,7 @@ export function Hero() {
 
   const container = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
+  const onScreen = useInViewport(container);
 
   useEffect(() => {
     const element = container.current;
@@ -89,7 +91,12 @@ export function Hero() {
     >
       <div className="sticky top-0 h-screen w-full overflow-hidden">
         <div className="absolute inset-0" role="img" aria-label={t.a11y.heroCanvasAlt}>
-          <HeroScene mobile={isMobile} still={reducedMotion} onReady={() => setReady(true)} />
+          <HeroScene
+            mobile={isMobile}
+            still={reducedMotion}
+            active={onScreen}
+            onReady={() => setReady(true)}
+          />
         </div>
         <HeroOverlay ready={ready} />
         <HeroLoader visible={!ready} label={t.loader.label} hint={t.loader.hint} />
