@@ -204,6 +204,26 @@ script.
 Adding a `.glb` or site photos later only needs a commit — Vercel rebuilds and
 the model-presence flag is recomputed.
 
+### Which URL to open
+
+Vercel gives every build a unique URL of the form
+`aureon-<hash>-<team>.vercel.app`. Under the default **Standard Protection**
+those are gated behind a Vercel login, which is why one opens on a laptop that
+is signed in and asks for credentials on a phone. They are build artefacts, not
+the site.
+
+The public address is the project's assigned domain — the production alias, or
+whatever custom domain is attached. Share that one.
+
+The alias only follows the **production branch**, set under
+**Settings → Git → Production Branch** (`main` here). A deployment from any
+other branch is a Preview: it gets a hashed URL and never touches the alias.
+So a change is live on the alias once it is merged to `main`, not when the
+branch deploys.
+
+To make the hashed preview URLs public as well, turn off
+**Settings → Deployment Protection → Vercel Authentication**.
+
 ---
 
 ## The hidden record

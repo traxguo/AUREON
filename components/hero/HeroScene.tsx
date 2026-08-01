@@ -31,14 +31,19 @@ type Keyframe = {
  * arrival high and wide → close on the side panel where the logo sits →
  * down to ground level for the scan → back out for the closing statement.
  */
+/**
+ * Look-at points sit close to x = 0 on purpose: that is the slew axis the
+ * machine turns about, so it stays centred through a full revolution instead
+ * of swinging across the frame.
+ */
 const KEYFRAMES: Keyframe[] = [
-  { p: 0.0, pos: [6.9, 4.7, 7.9], target: [0.4, 1.2, 0] },
-  { p: 0.15, pos: [7.6, 3.7, 8.2], target: [0.4, 1.25, 0] },
-  { p: 0.32, pos: [3.4, 2.5, 8.0], target: [0.2, 1.3, 0.1] },
-  { p: 0.46, pos: [6.6, 2.9, 8.2], target: [0.3, 0.1, 0] },
-  { p: 0.62, pos: [7.5, 2.3, 8.9], target: [0.3, -0.3, 0] },
-  { p: 0.8, pos: [11.6, 4.7, 11.6], target: [0.4, -0.5, 0] },
-  { p: 1.0, pos: [13.6, 6.2, 13.2], target: [0.4, -0.4, 0] },
+  { p: 0.0, pos: [6.9, 4.7, 7.9], target: [0.15, 1.25, 0] },
+  { p: 0.15, pos: [7.6, 3.7, 8.2], target: [0.15, 1.25, 0] },
+  { p: 0.32, pos: [3.4, 2.5, 8.0], target: [0.15, 1.3, 0.1] },
+  { p: 0.46, pos: [6.6, 2.9, 8.2], target: [0.15, 0.1, 0] },
+  { p: 0.62, pos: [7.5, 2.3, 8.9], target: [0.15, -0.3, 0] },
+  { p: 0.8, pos: [11.6, 4.7, 11.6], target: [0.15, -0.5, 0] },
+  { p: 1.0, pos: [13.6, 6.2, 13.2], target: [0.15, -0.4, 0] },
 ];
 
 /**
@@ -129,30 +134,47 @@ function wrapAngle(angle: number): number {
  * beat, while the whole scroll still adds up to one complete revolution.
  */
 const HEADING_ZERO_AT = 0.32;
+/** Radians per second of the idle turntable, before the first scroll. */
+const IDLE_SPEED = 0.16;
+const TWO_PI = Math.PI * 2;
 
 function Machine({ still }: { still: boolean }) {
   const group = useRef<THREE.Group>(null);
+  /** Heading the idle turntable had reached when scrolling began. */
+  const base = useRef<number | null>(null);
 
   useFrame(({ clock }) => {
     if (!group.current) return;
     const p = heroProgress.value;
 
-    // One full revolution across the scroll, driven entirely by progress.
+    // Idle: a slow turntable while the page sits at the top.
+    if (p <= 0.0005) {
+      base.current = null;
+      const idle = still ? -0.6 : -0.6 + clock.getElapsedTime() * IDLE_SPEED;
+      group.current.rotation.y = wrapAngle(idle);
+      return;
+    }
+
+    // Scrolling: always turn *forwards*, never unwind.
     //
-    // This replaced a clock-driven turntable: because that angle accumulated
-    // for as long as the page sat at the top, the alignment step had to unwind
-    // it, and a page left open for two minutes spun two full turns the moment
-    // you scrolled. Deriving the heading from progress makes the motion
-    // deterministic — the same scroll position is always the same angle.
-    const spin = (p - HEADING_ZERO_AT) * Math.PI * 2;
+    // An earlier version scaled the accumulated idle angle back to zero, which
+    // meant a page left open for two minutes spun two full turns backwards the
+    // moment you scrolled. Instead the heading carries on in the same
+    // direction: it covers whatever is left to reach square-on by the
+    // recognition beat, then a full revolution through the rest of the scroll.
+    if (base.current === null) {
+      base.current = wrapAngle(group.current.rotation.y);
+    }
 
-    // A slow, bounded sway so the machine is not dead still before the first
-    // scroll. It is worth ±7° at most and is gone by the time the turn starts,
-    // so it can never accumulate.
-    const sway = still ? 0 : Math.sin(clock.getElapsedTime() * 0.25) * 0.12;
-    const swayFade = 1 - smoothstep(0, 0.05, p);
+    // Forward distance from where the idle stopped to square-on, in [0, 2PI).
+    const catchUp = ((-base.current % TWO_PI) + TWO_PI) % TWO_PI;
 
-    group.current.rotation.y = wrapAngle(spin + sway * swayFade);
+    const heading =
+      p < HEADING_ZERO_AT
+        ? base.current + catchUp * (p / HEADING_ZERO_AT)
+        : (TWO_PI * (p - HEADING_ZERO_AT)) / (1 - HEADING_ZERO_AT);
+
+    group.current.rotation.y = wrapAngle(heading);
   });
 
   return (

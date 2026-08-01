@@ -138,7 +138,10 @@ export function HeroOverlay({ ready = false }: { ready?: boolean }) {
       <div
         ref={titleRef}
         data-entered={ready}
-        className="group absolute left-6 top-[32%] max-w-[80vw] md:left-12 md:top-[34%] xl:left-20"
+        // Centred on a phone, where the machine sits in the middle of a tall
+        // frame and left-hung type reads as misaligned; anchored left from the
+        // tablet breakpoint up, where the machine has moved to the right.
+        className="group absolute inset-x-6 top-[26%] text-center md:inset-x-auto md:left-12 md:top-[34%] md:max-w-[80vw] md:text-left xl:left-20"
       >
         <h1
           className="display-heading text-[17vw] leading-[0.86] md:text-[9.5vw] xl:text-[8rem]"

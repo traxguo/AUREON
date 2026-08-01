@@ -22,8 +22,30 @@ const files: string[] = (() => {
   }
 })();
 
+/**
+ * Latin letters that are their own character rather than a base plus a
+ * combining mark, so NFD leaves them intact and the a–z filter below would
+ * delete them outright.
+ *
+ * The dotless i matters in practice: a Turkish keyboard turns "libya" into
+ * "lıbya", which would otherwise normalise to "lbya" and match nothing.
+ */
+const TRANSLITERATE: Record<string, string> = {
+  ı: 'i',
+  İ: 'i',
+  ł: 'l',
+  đ: 'd',
+  ð: 'd',
+  ø: 'o',
+  œ: 'oe',
+  æ: 'ae',
+  ß: 'ss',
+  þ: 'th',
+};
+
 function normalise(value: string): string {
   return value
+    .replace(/[ıİłđðøœæßþ]/gi, (char) => TRANSLITERATE[char] ?? TRANSLITERATE[char.toLowerCase()] ?? char)
     .toLowerCase()
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
