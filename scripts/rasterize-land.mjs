@@ -1,7 +1,28 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+/**
+ * Regenerates `data/worldMask.ts` — the dot-matrix land mask used by the globe
+ * in the field map section.
+ *
+ *   node scripts/rasterize-land.mjs
+ *
+ * Downloads Natural Earth's 110 m land polygons on first run and caches them
+ * next to this script (the cache is gitignored). Nothing at build or request
+ * time depends on this; the committed mask is the artefact.
+ */
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
-const STEP = 2; // degrees
-const geo = JSON.parse(readFileSync(new URL('./land.geojson', import.meta.url), 'utf8'));
+const STEP = 1; // degrees per cell
+const SOURCE =
+  'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_land.geojson';
+
+const cache = new URL('./land.geojson', import.meta.url);
+if (!existsSync(cache)) {
+  console.log('Downloading Natural Earth land polygons…');
+  const response = await fetch(SOURCE);
+  if (!response.ok) throw new Error(`Download failed: ${response.status}`);
+  writeFileSync(cache, await response.text());
+}
+
+const geo = JSON.parse(readFileSync(cache, 'utf8'));
 
 /** Collect every ring as a flat array of [lon,lat] pairs, tagged outer/hole. */
 const polygons = [];
@@ -97,13 +118,21 @@ export const LAND_MASK: readonly string[] = [
 ${trimmed.map((l) => `  '${l}',`).join('\n')}
 ];
 
-/** Every land cell as a [longitude, latitude] pair. */
+/**
+ * Every land cell as a [longitude, latitude] pair.
+ *
+ * Meridians converge toward the poles, so a fixed longitude step would pack
+ * the Arctic with dots and leave moiré rings around the pole. Widening the
+ * step by 1/cos(latitude) keeps the spacing roughly even on the sphere.
+ */
 export function landCoordinates(step = 1): Array<[number, number]> {
   const points: Array<[number, number]> = [];
   for (let r = 0; r < LAND_MASK_ROWS; r += step) {
     const row = LAND_MASK[r];
     const lat = 90 - r * LAND_MASK_STEP - LAND_MASK_STEP / 2;
-    for (let c = 0; c < LAND_MASK_COLS; c += step) {
+    const scale = Math.cos((lat * Math.PI) / 180);
+    const lonStep = Math.max(step, Math.round(step / Math.max(scale, 0.08)));
+    for (let c = 0; c < LAND_MASK_COLS; c += lonStep) {
       if (row[c] === '1') {
         points.push([-180 + c * LAND_MASK_STEP + LAND_MASK_STEP / 2, lat]);
       }
@@ -113,5 +142,5 @@ export function landCoordinates(step = 1): Array<[number, number]> {
 }
 `;
 
-writeFileSync('/home/user/AUREON/data/worldMask.ts', file);
+writeFileSync(new URL("../data/worldMask.ts", import.meta.url), file);
 console.log(`grid ${cols}x${rows}, land cells ${landCount}`);
