@@ -33,12 +33,12 @@ type Keyframe = {
  */
 const KEYFRAMES: Keyframe[] = [
   { p: 0.0, pos: [6.9, 4.7, 7.9], target: [0.4, 1.2, 0] },
-  { p: 0.15, pos: [5.7, 3.1, 6.2], target: [0.4, 1.3, 0] },
-  { p: 0.32, pos: [1.3, 1.9, 5.3], target: [-0.25, 1.32, 0.15] },
-  { p: 0.46, pos: [6.4, 2.8, 8.0], target: [0.3, -0.4, 0] },
-  { p: 0.62, pos: [7.3, 2.1, 8.7], target: [0.3, -0.85, 0] },
-  { p: 0.8, pos: [11.6, 4.7, 11.6], target: [0.4, -0.7, 0] },
-  { p: 1.0, pos: [13.6, 6.2, 13.2], target: [0.4, -0.5, 0] },
+  { p: 0.15, pos: [7.6, 3.7, 8.2], target: [0.4, 1.25, 0] },
+  { p: 0.32, pos: [3.4, 2.5, 8.0], target: [0.2, 1.3, 0.1] },
+  { p: 0.46, pos: [6.6, 2.9, 8.2], target: [0.3, 0.1, 0] },
+  { p: 0.62, pos: [7.5, 2.3, 8.9], target: [0.3, -0.3, 0] },
+  { p: 0.8, pos: [11.6, 4.7, 11.6], target: [0.4, -0.5, 0] },
+  { p: 1.0, pos: [13.6, 6.2, 13.2], target: [0.4, -0.4, 0] },
 ];
 
 /**
@@ -123,36 +123,36 @@ function wrapAngle(angle: number): number {
   return angle - Math.PI * 2 * Math.floor((angle + Math.PI) / (Math.PI * 2));
 }
 
+/**
+ * Progress at which the machine faces the camera square-on. The turn is phased
+ * around this point so the logo panel is presented exactly at the recognition
+ * beat, while the whole scroll still adds up to one complete revolution.
+ */
+const HEADING_ZERO_AT = 0.32;
+
 function Machine({ still }: { still: boolean }) {
   const group = useRef<THREE.Group>(null);
-  /** Heading captured the moment scrolling starts, in (-PI, PI]. */
-  const lockedFrom = useRef<number | null>(null);
 
   useFrame(({ clock }) => {
     if (!group.current) return;
     const p = heroProgress.value;
 
-    // Free rotation on arrival, easing to a locked heading that presents the
-    // side panel — and therefore the logo — square to the camera.
+    // One full revolution across the scroll, driven entirely by progress.
     //
-    // The free angle accumulates for as long as the visitor sits at the top of
-    // the page, so it must be wrapped and then frozen when the lock begins.
-    // Scaling the raw accumulated angle instead made the machine unwind every
-    // turn it had made — a page left open for a minute spun a full circle the
-    // instant you scrolled.
-    const lock = smoothstep(0.04, 0.3, p);
+    // This replaced a clock-driven turntable: because that angle accumulated
+    // for as long as the page sat at the top, the alignment step had to unwind
+    // it, and a page left open for two minutes spun two full turns the moment
+    // you scrolled. Deriving the heading from progress makes the motion
+    // deterministic — the same scroll position is always the same angle.
+    const spin = (p - HEADING_ZERO_AT) * Math.PI * 2;
 
-    if (lock <= 0) {
-      lockedFrom.current = null;
-      const free = -0.62 + (still ? 0.4 : clock.getElapsedTime() * 0.11);
-      group.current.rotation.y = wrapAngle(free);
-      return;
-    }
+    // A slow, bounded sway so the machine is not dead still before the first
+    // scroll. It is worth ±7° at most and is gone by the time the turn starts,
+    // so it can never accumulate.
+    const sway = still ? 0 : Math.sin(clock.getElapsedTime() * 0.25) * 0.12;
+    const swayFade = 1 - smoothstep(0, 0.05, p);
 
-    if (lockedFrom.current === null) {
-      lockedFrom.current = wrapAngle(group.current.rotation.y);
-    }
-    group.current.rotation.y = lockedFrom.current * (1 - lock);
+    group.current.rotation.y = wrapAngle(spin + sway * swayFade);
   });
 
   return (
