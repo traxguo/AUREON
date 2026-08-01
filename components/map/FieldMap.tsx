@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useT } from '@/components/i18n/LanguageProvider';
 import FadeUp from '@/components/motion/FadeUp';
 import { useIsMobile } from '@/hooks/useMediaQuery';
+import { useInViewport } from '@/hooks/useInViewport';
 import { FALLBACK_ORIGIN, nearestSite, sites, type Site } from '@/data/sites';
 import SitePanel from './SitePanel';
 import VisitRequestModal from './VisitRequestModal';
@@ -28,6 +29,7 @@ export function FieldMap({ id }: { id: string }) {
   const [hint, setHint] = useState<Hint>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const section = useRef<HTMLElement>(null);
+  const onScreen = useInViewport(section);
 
   const nearest = useMemo(() => nearestSite(origin), [origin]);
 
@@ -137,6 +139,7 @@ export function FieldMap({ id }: { id: string }) {
                   selectedId={selectedId}
                   nearestId={nearest.site.id}
                   mobile={isMobile}
+                  active={onScreen}
                   onSelect={handleSelect}
                   onHover={setHovered}
                   onEmptyClick={handleEmptyClick}

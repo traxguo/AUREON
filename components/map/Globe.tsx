@@ -328,6 +328,8 @@ export type GlobeProps = {
   selectedId: string | null;
   nearestId: string | null;
   mobile?: boolean;
+  /** Stop rendering while the section is off screen. */
+  active?: boolean;
   onSelect: (site: Site) => void;
   onHover: (site: Site | null) => void;
   onEmptyClick: (screen: { x: number; y: number }) => void;
@@ -338,6 +340,7 @@ export function Globe({
   selectedId,
   nearestId,
   mobile = false,
+  active = true,
   onSelect,
   onHover,
   onEmptyClick,
@@ -347,6 +350,7 @@ export function Globe({
   return (
     <Canvas
       dpr={mobile ? [1, 1.5] : [1, 2]}
+      frameloop={active ? 'always' : 'never'}
       camera={{ fov: 32, position: [0, 0, 7.6], near: 0.1, far: 40 }}
       gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       style={{ cursor: grabbing ? 'grabbing' : 'grab', touchAction: 'pan-y' }}

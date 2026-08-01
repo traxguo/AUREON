@@ -118,8 +118,15 @@ function CameraRig({ still }: { still: boolean }) {
 /* Machine turntable                                                   */
 /* ------------------------------------------------------------------ */
 
+/** Wrap an angle into (-PI, PI] so easing always takes the short way round. */
+function wrapAngle(angle: number): number {
+  return angle - Math.PI * 2 * Math.floor((angle + Math.PI) / (Math.PI * 2));
+}
+
 function Machine({ still }: { still: boolean }) {
   const group = useRef<THREE.Group>(null);
+  /** Heading captured the moment scrolling starts, in (-PI, PI]. */
+  const lockedFrom = useRef<number | null>(null);
 
   useFrame(({ clock }) => {
     if (!group.current) return;
@@ -127,9 +134,25 @@ function Machine({ still }: { still: boolean }) {
 
     // Free rotation on arrival, easing to a locked heading that presents the
     // side panel — and therefore the logo — square to the camera.
-    const drifting = -0.62 + (still ? 0.4 : clock.getElapsedTime() * 0.11);
-    const lock = smoothstep(PHASES.arrival[1], 0.32, p);
-    group.current.rotation.y = drifting * (1 - lock);
+    //
+    // The free angle accumulates for as long as the visitor sits at the top of
+    // the page, so it must be wrapped and then frozen when the lock begins.
+    // Scaling the raw accumulated angle instead made the machine unwind every
+    // turn it had made — a page left open for a minute spun a full circle the
+    // instant you scrolled.
+    const lock = smoothstep(0.04, 0.3, p);
+
+    if (lock <= 0) {
+      lockedFrom.current = null;
+      const free = -0.62 + (still ? 0.4 : clock.getElapsedTime() * 0.11);
+      group.current.rotation.y = wrapAngle(free);
+      return;
+    }
+
+    if (lockedFrom.current === null) {
+      lockedFrom.current = wrapAngle(group.current.rotation.y);
+    }
+    group.current.rotation.y = lockedFrom.current * (1 - lock);
   });
 
   return (
@@ -276,15 +299,22 @@ function StudioEnvironment() {
 export type HeroSceneProps = {
   mobile?: boolean;
   still?: boolean;
+  /** Stop rendering once the hero has scrolled away. */
+  active?: boolean;
   onReady?: () => void;
 };
 
-export function HeroScene({ mobile = false, still = false, onReady }: HeroSceneProps) {
+export function HeroScene({
+  mobile = false,
+  still = false,
+  active = true,
+  onReady,
+}: HeroSceneProps) {
   return (
     <Canvas
       dpr={mobile ? [1, 1.5] : [1, 2]}
       shadows={!mobile}
-      frameloop="always"
+      frameloop={active ? 'always' : 'never'}
       gl={{
         antialias: !mobile,
         powerPreference: 'high-performance',

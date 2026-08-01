@@ -26,6 +26,14 @@ export const SECRET_SEQUENCE = [
 /** How long a partial sequence stays alive before it resets, in ms. */
 export const SEQUENCE_TIMEOUT = 3000;
 
+/**
+ * Phones have no arrow keys, so the mark in the footer is a second way in:
+ * tap it this many times in quick succession. Marked in the DOM with
+ * `data-secret-trigger`, which is the only trace the easter egg leaves.
+ */
+export const SECRET_TAP_COUNT = 5;
+export const SECRET_TAP_WINDOW = 2500;
+
 /** Everything below is yours to rewrite — it is the whole point of the panel. */
 export const secretMessage = {
   eyebrow: 'Restricted record',

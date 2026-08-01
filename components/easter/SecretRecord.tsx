@@ -3,7 +3,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Logo from '@/components/ui/Logo';
-import { SECRET_SEQUENCE, SEQUENCE_TIMEOUT, secretMessage } from '@/data/easterEgg';
+import {
+  SECRET_SEQUENCE,
+  SECRET_TAP_COUNT,
+  SECRET_TAP_WINDOW,
+  SEQUENCE_TIMEOUT,
+  secretMessage,
+} from '@/data/easterEgg';
 
 /**
  * Hidden record, opened by the key sequence in `data/easterEgg.ts`.
@@ -51,6 +57,34 @@ export function SecretRecord() {
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
+  // Touch route: rapid taps on the footer mark, since a phone cannot type the
+  // sequence above.
+  useEffect(() => {
+    let taps = 0;
+    let firstTapAt = 0;
+
+    // `click` rather than `pointerup`: it is the one event a tap, a mouse
+    // click and a keyboard activation all produce exactly once.
+    const onActivate = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (!target?.closest('[data-secret-trigger]')) return;
+
+      const now = Date.now();
+      if (now - firstTapAt > SECRET_TAP_WINDOW) {
+        taps = 0;
+        firstTapAt = now;
+      }
+      taps += 1;
+      if (taps >= SECRET_TAP_COUNT) {
+        taps = 0;
+        setOpen(true);
+      }
+    };
+
+    window.addEventListener('click', onActivate);
+    return () => window.removeEventListener('click', onActivate);
   }, []);
 
   useEffect(() => {

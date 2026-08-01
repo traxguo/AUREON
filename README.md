@@ -208,13 +208,18 @@ the model-presence flag is recomputed.
 
 ## The hidden record
 
-There is one easter egg. Press this sequence anywhere on the page, outside a
-form field:
+There is one easter egg, with two ways in.
+
+**Keyboard** — press this sequence anywhere on the page, outside a form field:
 
     ↑ ↑ ↓ ↓ ← → ← →  G  U  O
 
-A restricted-record panel opens with the message signed by GUO. Escape, the
-Close button or a click outside dismisses it.
+**Touch** — tap the AUREON mark in the footer five times within 2.5 seconds.
+Phones have no arrow keys, so the mark carries a `data-secret-trigger`
+attribute and counts rapid taps. Tapping slowly does nothing.
+
+Either opens a restricted-record panel with the message signed by GUO. Escape,
+the Close button or a click outside dismisses it.
 
 It is deliberately **not** a route. A page at `/guo` would appear in crawls and
 the sitemap; a key sequence leaves nothing in the markup or the network tab
@@ -223,7 +228,8 @@ until it fires. The sequence, the timeout and every line of the message live in
 
 Keys are matched on `KeyboardEvent.code`, so the sequence is the same on any
 keyboard layout, and keystrokes inside inputs, textareas and selects are
-ignored so typing never triggers it by accident.
+ignored so typing never triggers it by accident. The tap count and its window
+are `SECRET_TAP_COUNT` and `SECRET_TAP_WINDOW` in the same file.
 
 ---
 
@@ -251,3 +257,11 @@ ignored so typing never triggers it by accident.
   same factor so the haze looks identical at any distance.
 - **3D scenes** are `dynamic(..., { ssr: false })` so they never block first
   paint. The hero shows a gold progress rule until the canvas reports ready.
+  Both canvases stop rendering when scrolled off screen (`useInViewport` →
+  `frameloop`), which keeps a phone from driving two live WebGL contexts at
+  once and stops either being dropped under memory pressure.
+- **The machine's turntable** rotates freely only while the page is at the top.
+  The heading is wrapped into ±180° and frozen the moment scrolling begins, so
+  the alignment is always the short way round; scaling the raw accumulated
+  angle instead made a page left open for two minutes spin two full turns as
+  soon as you scrolled.
