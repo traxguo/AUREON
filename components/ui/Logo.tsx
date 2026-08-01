@@ -1,43 +1,45 @@
 type LogoProps = {
   className?: string;
   title?: string;
-  /** Stroke colour; defaults to the brand gold. */
+  /** Mark colour; defaults to the brand gold. */
   color?: string;
 };
 
 /**
- * The AUREON mark: a stylised "A" inside a shield.
- * Kept as inline SVG (rather than an <img>) so it inherits colour and can be
- * animated. `/public/logo.svg` carries the identical geometry for OG images
- * and as the 3D decal source — update both together.
+ * The AUREON mark: a notched shield with a solid "A" that breaks out of it at
+ * the notch and at the feet, over a grey base form.
+ *
+ * Drawn flat rather than with the brushed-metal gradients of the print
+ * original — the site's palette rules out gradients, and at 28 px in the
+ * header a bevel turns to mud. Geometry is shared with `public/logo.svg` and
+ * `components/hero/logoTexture.ts`; update all three together.
  */
 export function Logo({ className, title = 'AUREON', color = '#D4AF37' }: LogoProps) {
   return (
     <svg
-      viewBox="0 0 64 74"
+      viewBox="0 0 100 104"
       fill="none"
       className={className}
       role="img"
       aria-label={title}
       focusable="false"
     >
+      {/* Structural balance */}
       <path
-        d="M32 2.5 60 12.4v25.9c0 15.6-12.2 26.9-28 33.2C16.2 65.2 4 53.9 4 38.3V12.4L32 2.5Z"
+        d="M40 74h20v0c0 10-5 17-10 22-5-5-10-12-10-22Z"
+        fill="#A7A9AC"
+        fillOpacity={0.5}
+      />
+      {/* Shield */}
+      <path
+        d="M8 8h22l20 14 20-14h22v46c0 24-42 42-42 42S8 78 8 54V8Z"
         stroke={color}
-        strokeWidth={1.6}
+        strokeWidth={7}
         strokeLinejoin="round"
       />
-      <path
-        d="M32 9.6 53.4 17v21.1c0 11.9-9.3 20.6-21.4 25.4C19.9 58.7 10.6 50 10.6 38.1V17L32 9.6Z"
-        stroke={color}
-        strokeWidth={0.7}
-        strokeOpacity={0.45}
-        strokeLinejoin="round"
-      />
-      <path d="M32 19.5 44.2 51.5" stroke={color} strokeWidth={1.6} strokeLinecap="square" />
-      <path d="M32 19.5 19.8 51.5" stroke={color} strokeWidth={1.6} strokeLinecap="square" />
-      <path d="M24.6 40.2h14.8" stroke={color} strokeWidth={1.6} strokeLinecap="square" />
-      <path d="M32 13.8v4.1" stroke={color} strokeWidth={0.7} strokeOpacity={0.6} />
+      {/* The A */}
+      <path d="M50 12 78 86H60L50 44 40 86H22L50 12Z" fill={color} />
+      <rect x={32} y={66} width={36} height={10} fill={color} />
     </svg>
   );
 }

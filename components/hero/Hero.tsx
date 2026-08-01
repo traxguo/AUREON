@@ -25,7 +25,7 @@ function HeroLoader({ visible, label, hint }: { visible: boolean; label: string;
       style={{ opacity: visible ? 1 : 0, pointerEvents: visible ? 'auto' : 'none' }}
       aria-hidden={!visible}
     >
-      <span className="display-heading text-4xl tracking-[0.12em] md:text-5xl">AUREON</span>
+      <span className="wordmark text-xl md:text-2xl">AUREON</span>
       <div className="mt-6 h-px w-40 overflow-hidden bg-silver/15" role="progressbar" aria-label={label}>
         <div className="h-full w-full origin-left bg-gold" style={{ animation: 'aureon-load 1.4s cubic-bezier(0.22,1,0.36,1) infinite' }} />
       </div>

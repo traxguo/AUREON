@@ -24,7 +24,7 @@ export function Footer() {
         <div className="lg:col-span-5">
           <div className="flex items-center gap-3">
             <Logo className="h-8 w-auto" title={t.a11y.logoAlt} />
-            <span className="display-heading text-2xl tracking-[0.14em]">{t.brand.name}</span>
+            <span className="wordmark text-base">{t.brand.name}</span>
           </div>
           <p className="data-label-sm mt-5 text-silver/60">{t.brand.slogan}</p>
           <p className="mt-8 text-sm text-silver/50">{company.legalName}</p>

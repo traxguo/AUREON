@@ -1,23 +1,12 @@
 import * as THREE from 'three';
 
 const GOLD = '#D4AF37';
+const GREY = '#A7A9AC';
 
 /** The same path data as `components/ui/Logo.tsx` — keep the two in sync. */
-const SHIELD_OUTER = 'M32 2.5 60 12.4v25.9c0 15.6-12.2 26.9-28 33.2C16.2 65.2 4 53.9 4 38.3V12.4L32 2.5Z';
-const SHIELD_INNER = 'M32 9.6 53.4 17v21.1c0 11.9-9.3 20.6-21.4 25.4C19.9 58.7 10.6 50 10.6 38.1V17L32 9.6Z';
-const A_RIGHT = 'M32 19.5 44.2 51.5';
-const A_LEFT = 'M32 19.5 19.8 51.5';
-const A_BAR = 'M24.6 40.2h14.8';
-
-function strokePath(ctx: CanvasRenderingContext2D, d: string, width: number, alpha = 1) {
-  ctx.save();
-  ctx.globalAlpha = alpha;
-  ctx.lineWidth = width;
-  ctx.strokeStyle = GOLD;
-  ctx.lineJoin = 'round';
-  ctx.stroke(new Path2D(d));
-  ctx.restore();
-}
+const BASE_FORM = 'M40 74h20v0c0 10-5 17-10 22-5-5-10-12-10-22Z';
+const SHIELD = 'M8 8h22l20 14 20-14h22v46c0 24-42 42-42 42S8 78 8 54V8Z';
+const LETTER_A = 'M50 12 78 86H60L50 44 40 86H22L50 12Z';
 
 /** Manually tracked wordmark — canvas `letterSpacing` is not universal yet. */
 function drawWordmark(
@@ -27,10 +16,11 @@ function drawWordmark(
   y: number,
   size: number,
   tracking: number,
+  color = GOLD,
 ) {
   ctx.save();
-  ctx.font = `600 ${size}px ui-sans-serif, system-ui, "Helvetica Neue", Arial, sans-serif`;
-  ctx.fillStyle = GOLD;
+  ctx.font = `500 ${size}px ui-sans-serif, system-ui, "Helvetica Neue", Arial, sans-serif`;
+  ctx.fillStyle = color;
   ctx.textBaseline = 'middle';
   let cursor = x;
   for (const char of text) {
@@ -41,9 +31,10 @@ function drawWordmark(
 }
 
 /**
- * Builds the badge applied to the excavator's side panels: shield mark plus
- * wordmark, drawn on a transparent canvas so it reads as painted-on livery.
- * Returns null when there is no DOM (SSR) — callers fall back to bare metal.
+ * Builds the badge applied to the excavator's side panels: the shield mark
+ * plus wordmark, drawn on a transparent canvas so it reads as painted-on
+ * livery. Returns null when there is no DOM (SSR) — callers fall back to
+ * bare metal.
  */
 export function createLogoTexture(): THREE.CanvasTexture | null {
   if (typeof document === 'undefined') return null;
@@ -59,34 +50,43 @@ export function createLogoTexture(): THREE.CanvasTexture | null {
 
   ctx.clearRect(0, 0, width, height);
 
-  // Shield, drawn from the SVG path data at 3× scale, vertically centred.
+  // Mark, drawn from the shared path data at 2× scale, vertically centred.
+  const scale = 2;
   ctx.save();
-  ctx.translate(24, (height - 74 * 2.9) / 2);
-  ctx.scale(2.9, 2.9);
-  strokePath(ctx, SHIELD_OUTER, 1.9);
-  strokePath(ctx, SHIELD_INNER, 0.8, 0.45);
-  strokePath(ctx, A_RIGHT, 1.9);
-  strokePath(ctx, A_LEFT, 1.9);
-  strokePath(ctx, A_BAR, 1.9);
+  ctx.translate(20, (height - 104 * scale) / 2);
+  ctx.scale(scale, scale);
+
+  ctx.globalAlpha = 0.5;
+  ctx.fillStyle = GREY;
+  ctx.fill(new Path2D(BASE_FORM));
+
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = GOLD;
+  ctx.lineWidth = 7;
+  ctx.lineJoin = 'round';
+  ctx.stroke(new Path2D(SHIELD));
+
+  ctx.fillStyle = GOLD;
+  ctx.fill(new Path2D(LETTER_A));
+  ctx.fillRect(32, 66, 36, 10);
   ctx.restore();
 
-  drawWordmark(ctx, 'AUREON', 230, height / 2 - 16, 62, 9);
+  drawWordmark(ctx, 'AUREON', 268, height / 2 - 14, 58, 11);
 
-  // Model designation, small and monospaced-feeling.
-  ctx.save();
-  ctx.globalAlpha = 0.7;
-  drawWordmark(ctx, 'S5', 232, height / 2 + 42, 26, 7);
-  ctx.restore();
-
-  // Hairline rule between wordmark and designation.
+  // Hairline rule and model designation.
   ctx.save();
   ctx.globalAlpha = 0.35;
   ctx.strokeStyle = GOLD;
   ctx.lineWidth = 1.5;
   ctx.beginPath();
-  ctx.moveTo(232, height / 2 + 16);
-  ctx.lineTo(width - 34, height / 2 + 16);
+  ctx.moveTo(270, height / 2 + 20);
+  ctx.lineTo(width - 30, height / 2 + 20);
   ctx.stroke();
+  ctx.restore();
+
+  ctx.save();
+  ctx.globalAlpha = 0.75;
+  drawWordmark(ctx, 'S5', 270, height / 2 + 46, 26, 8, GREY);
   ctx.restore();
 
   const texture = new THREE.CanvasTexture(canvas);

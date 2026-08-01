@@ -101,6 +101,23 @@
     color: var(--bone);
   }
 
+  /*
+   * The AUREON wordmark. Deliberately not the display face: the logotype is
+   * wide and geometric, while Big Shoulders Display is condensed — setting the
+   * brand name in it would misrepresent the mark. Big Shoulders stays the
+   * heading typeface everywhere else.
+   */
+  .wordmark {
+    font-family: var(--font-body), system-ui, sans-serif;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.24em;
+    line-height: 1;
+    color: var(--bone);
+    /* Tracking adds trailing space; pull it back so the mark stays centred. */
+    margin-right: -0.24em;
+  }
+
   .hairline {
     border-color: var(--hairline);
   }

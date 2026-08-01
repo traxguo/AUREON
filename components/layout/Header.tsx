@@ -63,9 +63,7 @@ export function Header() {
         <div className="section-shell flex h-16 items-center justify-between md:h-20">
           <a href="#hero" className="flex items-center gap-3" aria-label={t.brand.name}>
             <Logo className="h-7 w-auto md:h-8" title={t.a11y.logoAlt} />
-            <span className="display-heading text-xl tracking-[0.14em] md:text-2xl">
-              {t.brand.name}
-            </span>
+            <span className="wordmark text-sm md:text-base">{t.brand.name}</span>
           </a>
 
           <nav className="hidden items-center gap-8 lg:flex" aria-label={t.nav.menu}>
@@ -126,7 +124,7 @@ export function Header() {
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
             <div className="section-shell flex h-16 items-center justify-between md:h-20">
-              <span className="display-heading text-xl tracking-[0.14em]">{t.brand.name}</span>
+              <span className="wordmark text-sm">{t.brand.name}</span>
               <button
                 type="button"
                 onClick={() => setMenuOpen(false)}

@@ -113,10 +113,25 @@ nothing here can break a build.
 | Site photos | `public/sites/{id}.jpg` | Typographic placeholder with the serial |
 | OG image | `public/og.png` | — (shipped) |
 
-**Replacing the logo:** update `public/logo.svg`, the paths in
-`components/ui/Logo.tsx`, and the path constants in
-`components/hero/logoTexture.ts` (which paints the mark onto the machine's
-side panels). All three use identical path data.
+**The logo** is a web translation of the brand mark: notched shield, a solid
+"A" that rises through the notch and breaks past the shield at the feet, over
+the grey "structural balance" base form. It is drawn flat — the print original
+uses brushed-metal gradients, which the palette rules out and which turn to
+mud at 28 px in the header.
+
+The identical path data lives in three places; change all three together:
+
+- `public/logo.svg` — favicon and static uses
+- `components/ui/Logo.tsx` — the mark in the header and footer
+- `components/hero/logoTexture.ts` — painted onto the excavator's side panels
+
+The wordmark is set with the `.wordmark` class (Work Sans, uppercase, 0.24em
+tracking) rather than the display face: the logotype is wide and geometric
+while Big Shoulders Display is condensed. Big Shoulders remains the heading
+typeface everywhere else.
+
+Regenerating `public/og.png` after a logo change is manual — it is a static
+render of a 1200 × 630 layout using the same paths.
 
 **Adding the real 3D model:** drop the `.glb` in `public/models/` and
 redeploy. Presence is resolved at build time in `next.config.mjs`, so no
